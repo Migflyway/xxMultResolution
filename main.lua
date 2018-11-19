@@ -31,38 +31,58 @@ dep_nine_pos = {
 --------需要考虑黑边
 ----这里加入自动检测黑白，让其所有数值进行偏移
 
---width,height = getScreenSize()
+width,height = getScreenSize()
 -- 0.75
-width,height = 768, 1024
+--width,height = 828, 1792
 
 --发现这种黑边处理有点问题
---[[
+-- 上下左右 黑边数值
+-- 针对全面屏 或者其他问题
+local black_top, black_bottom, black_right, black_left = 0, 0, 0, 0
 
-local dif_width, dif_height = 0, 0
 
 -- 纵向检测
 -- 从高的中间开始检测
 for i=1, width,1 do
 	if getColor(height/2, i) == 0x000000 then
-		dif_width = dif_width + 1
+		black_top = black_top + 1
 	else
-		print("黑边检测完成，偏移"..dif_width)
+	print("黑边上检测完成，偏移"..black_top)
 		break
 	end
 end
+
+for i=width, 1,-1 do
+	if getColor(height/2, i) == 0x000000 then
+		black_bottom = black_bottom + 1
+	else
+		print("黑边下检测完成，偏移"..black_bottom)
+		break
+	end
+end
+
 
 
 -- 横向检测
 -- 从宽的中间开始检测
 for i=1, height,1 do
 	if getColor(i, width/2) == 0x000000 then
-		dif_height = dif_height + 1
+		black_left = black_left + 1
 	else
-		print("黑边检测完成，偏移"..dif_height)
+		print("黑边检测完成左，偏移"..black_left)
 		break
 	end
 end
-]]
+
+for i=height, 1,-1 do
+	if getColor(i, width/2) == 0x000000 then
+		black_right = black_right + 1
+	else
+		print("黑边检测完成右，偏移"..black_right)
+		break
+	end
+end
+
 --- 4 / 3 (4 * 4 = 16 / 12)
 --width,height = 768, 1024
 cur_x = math.max(width,height)
@@ -70,17 +90,17 @@ cur_y = math.min(width,height)
 
 print("运行环境 x轴"..cur_x.." y轴"..cur_y)
 nine_pos = {
-	{0,0},
-	{cur_x/2,0},
-	{cur_x,0},
+	{0+black_right,0+black_top},
+	{cur_x/2,0+black_top},
+	{cur_x-black_left,0+black_top},
 	
-	{0,cur_y/2},
+	{0+black_right,cur_y/2},
 	{cur_x/2,cur_y/2},
-	{cur_x,cur_y/2},
+	{cur_x-black_left,cur_y/2},
 	
-	{0,cur_y},
-	{cur_x/2,cur_y},
-	{cur_x,cur_y}
+	{0+black_right,cur_y-black_bottom},
+	{cur_x/2,cur_y-black_bottom},
+	{cur_x-black_left,cur_y-black_bottom}
 }
 
 
@@ -95,9 +115,11 @@ end
 
 print("当前缩放比例"..sacale_rate)
 
+-- 0为等比扩张
+-- 其余为锚点 
 function returnpos(arcpos,array)
 	return math.floor((array[1]-dep_nine_pos[arcpos][1]) / sacale_rate + nine_pos[arcpos][1]), math.floor((array[2]-dep_nine_pos[arcpos][2])/ sacale_rate  + nine_pos[arcpos][2])
 end
 
-recal_x, recal_y = returnpos(1,{9,157})
+recal_x, recal_y = returnpos(3,{1053,30})
 print(recal_x..":"..recal_y)
